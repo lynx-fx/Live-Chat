@@ -1,0 +1,16 @@
+*{
+    margin: 0;
+    padding: 0;
+    caret-color: transparent;
+}
+
+html, body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+  overflow-y: scroll; /* keep scrolling */
+}
+
+html::-webkit-scrollbar, 
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
