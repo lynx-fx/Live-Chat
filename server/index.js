@@ -43,10 +43,10 @@ app.get("/ping", (req, res) => {
   res.status(200).json({ message: "pong" });
 });
 
+app.use("/api/auth", authRouter);
+
 app.listen(process.env.PORT || 3000, () => {
   console.log(
     `Server is running on port ${process.env.PORT} & serving to ${frontend}`
   );
 });
-
-app.use("/api/auth", authRouter);

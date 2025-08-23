@@ -1,10 +1,16 @@
 import { FcGoogle } from "react-icons/fc";
 import { motion } from "framer-motion";
 import "../styles/login.css";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
+import { toast } from "sonner";
 
 export default function Login() {
+  const BACKEND = import.meta.env.PROD
+    ? import.meta.env.VITE_BACKEND_HOSTED
+    : import.meta.env.VITE_BACKEND_LOCAL;
+
+  const navigate = useNavigate();
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -24,8 +30,21 @@ export default function Login() {
 
   const responseGoogle = async (res) => {
     try {
-      if (res['code']){
-        // TODO: Make API Call with code here
+      if (res.code) {
+        const response = await fetch(
+          `${BACKEND}/api/auth/login?code=${res.code}`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
+        const data = await response.json();
+        if (response.ok && data.success) {
+          toast.success(data.message || "Login in successful");
+          navigate(data.redirect || "/dashboard");
+        } else {
+          toast.error(data.message || "Login in failed");
+        }
       }
     } catch (err) {
       console.log("Err: ", err);
