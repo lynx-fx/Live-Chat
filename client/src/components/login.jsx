@@ -2,6 +2,7 @@ import { FcGoogle } from "react-icons/fc";
 import { motion } from "framer-motion";
 import "../styles/login.css";
 import { Link } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
 
 export default function Login() {
   const containerVariants = {
@@ -21,6 +22,22 @@ export default function Login() {
     visible: { opacity: 1, y: 0 },
   };
 
+  const responseGoogle = async (res) => {
+    try {
+      if (res['code']){
+        // TODO: Make API Call with code here
+      }
+    } catch (err) {
+      console.log("Err: ", err);
+    }
+  };
+
+  const handleLogin = useGoogleLogin({
+    onSuccess: responseGoogle,
+    onError: responseGoogle,
+    flow: "auth-code",
+  });
+
   return (
     <div className="login-page-container">
       <motion.div
@@ -38,12 +55,12 @@ export default function Login() {
           </motion.p>
         </div>
         <motion.div variants={itemVariants}>
-          <Link to="/dashboard">
-            <button className="google-login-button">
-              <FcGoogle className="google-icon" />
-              Login with Google
-            </button>
-          </Link>
+          {/* <Link to="/dashboard"> */}
+          <button className="google-login-button" onClick={handleLogin}>
+            <FcGoogle className="google-icon" />
+            Login with Google
+          </button>
+          {/* </Link> */}
         </motion.div>
       </motion.div>
     </div>
