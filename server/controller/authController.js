@@ -4,7 +4,7 @@ const User = require("../model/userModel.js");
 
 const { oauth2client } = require("../util/googleConfig.js");
 
-exports.login = async (req, res) => {
+exports. login = async (req, res) => {
   try {
     const { code } = req.query;
     const googleResponse = await oauth2client.getToken(code);

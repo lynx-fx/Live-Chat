@@ -1,5 +1,7 @@
 require("dotenv").config();
 const express = require("express");
+const http = require("http");
+const { Server, Socket } = require("socket.io");
 const helmet = require("helmet");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -26,6 +28,14 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: frontend,
+    credentials: true,
+  },
+});
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
@@ -45,7 +55,22 @@ app.get("/ping", (req, res) => {
 
 app.use("/api/auth", authRouter);
 
-app.listen(process.env.PORT || 3000, () => {
+io.on("connection", (socket) => {
+  console.log("A user is connected: ", socket.id);
+
+  socket.on("chat message", (msg) => {
+    console.log("Message received: ", msg);
+
+    // Brodcast message to everyone
+    io.emit("chat message", msg);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
+
+server.listen(process.env.PORT || 3000, () => {
   console.log(
     `Server is running on port ${process.env.PORT} & serving to ${frontend}`
   );
