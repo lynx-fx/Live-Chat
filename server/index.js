@@ -7,6 +7,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const authRouter = require("./routes/authRouter");
+const userRouter = require("./routes/userRouter");
 
 const frontend =
   process.env.NODE_ENV === "production"
@@ -54,6 +55,7 @@ app.get("/ping", (req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
 
 io.on("connection", (socket) => {
   console.log("A user is connected: ", socket.id);

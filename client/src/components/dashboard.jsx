@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiSearch,
@@ -12,6 +12,7 @@ import {
 import { BsChatDots, BsPersonPlus } from "react-icons/bs";
 import { Navigate } from "react-router-dom";
 import "../styles/dashboard.css";
+import { toast } from "sonner";
 
 function Dashboard() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -20,7 +21,35 @@ function Dashboard() {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showFriendPopup, setShowFriendPopup] = useState(false);
   const [friendRequestText, setFriendRequestText] = useState("");
+  const [userDetails, setUserDetails] = useState(null);
   const messagesEndRef = useRef(null);
+  const BACKEND = import.meta.env.PROD
+    ? import.meta.env.VITE_BACKEND_HOSTED
+    : import.meta.env.VITE_BACKEND_LOCAL;
+
+  useEffect(() => {
+    const getUserDetails = async () => {
+      const response = await fetch(`${BACKEND}/api/user/getUserDetails`, {
+        method: "GET",
+        headers: {
+          Content_Type: "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setUserDetails(data.user);
+        console.log(userDetails);
+        console.log(data.user);
+        
+        
+      } else {
+        toast.error( data.message || "Session expired. Please log in again." );
+        <Navigate to="/"/>;
+      }
+    };
+    getUserDetails();
+  }, []);
 
   // Mock data - replace with real data from your backend
   const [friends] = useState([
@@ -215,12 +244,12 @@ function Dashboard() {
         <div className="sidebar-header">
           <div className="user-info">
             <img
-              src="/placeholder.svg?height=40&width=40"
+              src={userDetails && userDetails.profileURI ? userDetails.profileURI : "/logo.png?height=40&width=40"}
               alt="Your avatar"
               className="user-avatar"
             />
             <div className="user-details">
-              <h3>John Doe</h3>
+              <h3>{userDetails && userDetails.userName ? userDetails.userName : "user"}</h3>
               <span className="user-status">Online</span>
             </div>
           </div>
