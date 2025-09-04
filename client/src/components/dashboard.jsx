@@ -39,51 +39,22 @@ function Dashboard() {
       const data = await response.json();
       if (response.ok && data.success) {
         setUserDetails(data.user);
-        console.log(userDetails);
-        console.log(data.user);
-        
-        
       } else {
-        toast.error( data.message || "Session expired. Please log in again." );
-        <Navigate to="/"/>;
+        toast.error(data.message || "Session expired. Please log in again.");
+        <Navigate to="/" />;
       }
     };
     getUserDetails();
   }, []);
 
-  // Mock data - replace with real data from your backend
   const [friends] = useState([
     {
       id: 1,
       name: "Alice Johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/alice.png?height=40&width=40",
       online: true,
-      lastMessage: "Hey! How are you?",
+      lastMessage: "Pretty good! Working on some new projects",
       timestamp: "2:30 PM",
-    },
-    {
-      id: 2,
-      name: "Bob Smith",
-      avatar: "/placeholder.svg?height=40&width=40",
-      online: false,
-      lastMessage: "See you tomorrow!",
-      timestamp: "1:15 PM",
-    },
-    {
-      id: 3,
-      name: "Carol Davis",
-      avatar: "/placeholder.svg?height=40&width=40",
-      online: true,
-      lastMessage: "Thanks for the help!",
-      timestamp: "12:45 PM",
-    },
-    {
-      id: 4,
-      name: "David Wilson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      online: true,
-      lastMessage: "Let's meet up soon",
-      timestamp: "11:30 AM",
     },
   ]);
 
@@ -111,68 +82,13 @@ function Dashboard() {
         isMe: false,
       },
     ],
-    2: [
-      {
-        id: 1,
-        text: "See you tomorrow!",
-        sender: "Bob Smith",
-        timestamp: "1:15 PM",
-        isMe: false,
-      },
-      {
-        id: 2,
-        text: "Looking forward to it",
-        sender: "Me",
-        timestamp: "1:16 PM",
-        isMe: true,
-      },
-    ],
-    3: [
-      {
-        id: 1,
-        text: "Thanks for the help!",
-        sender: "Carol Davis",
-        timestamp: "12:45 PM",
-        isMe: false,
-      },
-      {
-        id: 2,
-        text: "Anytime! Happy to help",
-        sender: "Me",
-        timestamp: "12:46 PM",
-        isMe: true,
-      },
-    ],
-    4: [
-      {
-        id: 1,
-        text: "Let's meet up soon",
-        sender: "David Wilson",
-        timestamp: "11:30 AM",
-        isMe: false,
-      },
-      {
-        id: 2,
-        text: "Sounds great! When works for you?",
-        sender: "Me",
-        timestamp: "11:31 AM",
-        isMe: true,
-      },
-    ],
   });
 
-  const [friendRequests] = useState([
+  const [friendRequests, setFriendRequests] = useState([
     {
       id: 1,
       name: "Emma Thompson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      mutualFriends: 3,
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      avatar: "/placeholder.svg?height=40&width=40",
-      mutualFriends: 1,
+      avatar: "/alice.png?height=40&width=40",
     },
   ]);
 
@@ -244,12 +160,21 @@ function Dashboard() {
         <div className="sidebar-header">
           <div className="user-info">
             <img
-              src={userDetails && userDetails.profileURI ? userDetails.profileURI : "/logo.png?height=40&width=40"}
+              src={
+                userDetails && userDetails.profileURI
+                  ? userDetails.profileURI
+                  : "/logo.png?height=40&width=40"
+              }
               alt="Your avatar"
               className="user-avatar"
+              referrerPolicy="no-referrer"
             />
             <div className="user-details">
-              <h3>{userDetails && userDetails.userName ? userDetails.userName : "user"}</h3>
+              <h3>
+                {userDetails && userDetails.userName
+                  ? userDetails.userName
+                  : "user"}
+              </h3>
               <span className="user-status">Online</span>
             </div>
           </div>
@@ -476,9 +401,6 @@ function Dashboard() {
                           />
                           <div className="request-details">
                             <div className="request-name">{request.name}</div>
-                            <div className="mutual-friends">
-                              {request.mutualFriends} mutual friends
-                            </div>
                           </div>
                         </div>
                         <div className="request-actions">
