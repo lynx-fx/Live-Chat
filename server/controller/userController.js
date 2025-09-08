@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../model/userModel");
 
 const { tokenExtractor } = require("../util/tokenExtractor.js");
-const User = require("../model/userModel");
 
 exports.getUserDetails = async (req, res) => {
   try {
@@ -35,7 +34,7 @@ exports.getUserDetails = async (req, res) => {
 
 exports.handleFriends = async (req, res) => {
   try {
-    const { friendId, action } = req.body;
+    const { friendId, friendEmail, action } = req.body;
 
     const token = tokenExtractor(req);
     if (!token) {
@@ -52,11 +51,14 @@ exports.handleFriends = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    const friend = await User.findById(friendId);
+    let friend = await User.findById(friendId);
+    if (!friend) {
+      friend = await User.findOne({ email: friendEmail });
+    }
     if (!friend) {
       return res
         .status(404)
-        .json({ success: false, message: "Friend not found" });
+        .json({ success: false, message: "User not found" });
     }
 
     if (action == "accept") {
@@ -98,8 +100,15 @@ exports.handleFriends = async (req, res) => {
         updatedFriendRequests,
       });
     } else if (action == "send") {
-      friend.friendRequests.push(decode.id);
-      await friend.save();
+      const friendReqReceiver = await User.findOne({ email: friendEmail });
+
+      if (!friendReqReceiver) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
+      friendReqReceiver.friendRequests.push(decode.id);
+      await friendReqReceiver.save();
 
       return res
         .status(200)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, use, act } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiSearch,
@@ -132,12 +132,24 @@ function Dashboard() {
     window.location.href = "/";
   };
 
-  const handleSendFriendRequest = (e) => {
+  const handleSendFriendRequest = async (e) => {
     e.preventDefault();
     if (!friendRequestText.trim()) return;
+    const response = await fetch(`${BACKEND}/api/user/handleFriends`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ friendEmail: friendRequestText, action: "send" }),
+    });
 
-    console.log("[v0] Sending friend request to:", friendRequestText);
-    // Add logic to send friend request
+    const data = await response.json();
+    if(response.ok && data.success){
+      toast.success(data.message || "Friend request sent successfully");
+    } else{
+      toast.error(data.message || "Failed to send friend request")
+    }
     setFriendRequestText("");
     setShowFriendPopup(false);
   };

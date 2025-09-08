@@ -16,11 +16,8 @@ const userSchema = new mongoose.Schema(
     },
     isOnline: {
       type: Boolean,
-      required: true,
-    },
-    isSeen: {
-      type: Boolean,
       default: true,
+      required: true,
     },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
