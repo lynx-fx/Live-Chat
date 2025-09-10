@@ -47,6 +47,10 @@ function Dashboard() {
     getUserDetails();
   }, []);
 
+  useEffect(() => {
+    getFriendRequests();
+  }, [showFriendPopup]);
+
   const [friends] = useState([
     {
       id: 1,
@@ -86,9 +90,9 @@ function Dashboard() {
 
   const [friendRequests, setFriendRequests] = useState([
     {
-      id: 1,
-      name: "Emma Thompson",
-      avatar: "/alice.png?height=40&width=40",
+      _id: 1,
+      userName: "Emma Thompson",
+      profileURI: "/alice.png?height=40&width=40",
     },
   ]);
 
@@ -131,6 +135,7 @@ function Dashboard() {
     // Add logout logic here
     window.location.href = "/";
   };
+  // API calls section
 
   const handleSendFriendRequest = async (e) => {
     e.preventDefault();
@@ -141,17 +146,40 @@ function Dashboard() {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({ friendEmail: friendRequestText, action: "send" }),
+      body: JSON.stringify({
+        friendEmail: friendRequestText,
+        action: "sendFriendRequest",
+      }),
     });
 
     const data = await response.json();
-    if(response.ok && data.success){
+    if (response.ok && data.success) {
       toast.success(data.message || "Friend request sent successfully");
-    } else{
-      toast.error(data.message || "Failed to send friend request")
+    } else {
+      toast.error(data.message || "Failed to send friend request");
     }
     setFriendRequestText("");
     setShowFriendPopup(false);
+  };
+
+  const getFriendRequests = async () => {
+    const response = await fetch(`${BACKEND}/api/user/handleFriends`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        action: "getfriendRequests",
+      }),
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.success) {
+      toast.error(data.message || "Failed getting friend requests");
+    }
+
+    setFriendRequests(data.friendRequests || []);
   };
 
   const handleAcceptRequest = (requestId) => {
@@ -229,6 +257,7 @@ function Dashboard() {
               className="add-friend-btn"
               onClick={() => setShowFriendPopup(true)}
             >
+              {/* //mark */}
               <BsPersonPlus />
             </button>
           </div>
@@ -404,27 +433,29 @@ function Dashboard() {
                   <h4>Friend Requests ({friendRequests.length})</h4>
                   <div className="friend-requests-list">
                     {friendRequests.map((request) => (
-                      <div key={request.id} className="friend-request-item">
+                      <div key={request._id} className="friend-request-item">
                         <div className="request-user-info">
                           <img
-                            src={request.avatar || "/placeholder.svg"}
-                            alt={request.name}
+                            src={request.profileURI || "/placeholder.svg"}
+                            alt={request.userName}
                             className="request-avatar"
                           />
                           <div className="request-details">
-                            <div className="request-name">{request.name}</div>
+                            <div className="request-name">
+                              {request.userName}
+                            </div>
                           </div>
                         </div>
                         <div className="request-actions">
                           <button
                             className="accept-btn"
-                            onClick={() => handleAcceptRequest(request.id)}
+                            onClick={() => handleAcceptRequest(request._id)}
                           >
                             Accept
                           </button>
                           <button
                             className="decline-btn"
-                            onClick={() => handleDeclineRequest(request.id)}
+                            onClick={() => handleDeclineRequest(request._id)}
                           >
                             Decline
                           </button>

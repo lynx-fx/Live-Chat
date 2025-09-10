@@ -4,6 +4,7 @@ const User = require("../model/userModel");
 
 const { tokenExtractor } = require("../util/tokenExtractor.js");
 
+// TODO: Make get details modular
 exports.getUserDetails = async (req, res) => {
   try {
     const token = tokenExtractor(req);
@@ -35,7 +36,7 @@ exports.getUserDetails = async (req, res) => {
 exports.handleFriends = async (req, res) => {
   try {
     const { friendId, friendEmail, action } = req.body;
-
+    
     const token = tokenExtractor(req);
     if (!token) {
       return res
@@ -48,7 +49,7 @@ exports.handleFriends = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: "User found" });
     }
 
     let friend = await User.findById(friendId);
@@ -99,7 +100,7 @@ exports.handleFriends = async (req, res) => {
         message: "Friend request rejected successfully",
         updatedFriendRequests,
       });
-    } else if (action == "send") {
+    } else if (action == "sendFriendRequest") {
       const friendReqReceiver = await User.findOne({ email: friendEmail });
 
       if (!friendReqReceiver) {
@@ -135,6 +136,36 @@ exports.handleFriends = async (req, res) => {
         message: "Friend removed successfully",
         friends: updatedFriends,
       });
+    } else if (action == "getfriends") {
+      const userDetails = await User.findById(user._id).populate(
+        "friends",
+        "userName email profileURI isOnline"
+      );
+
+      if (!userDetails || userDetails.friends.length === 0) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Try making new friends :)" });
+      }
+
+      return res
+        .status(200)
+        .json({ success: true, friends: userDetails.friends ?? [] });
+    } else if (action == "getfriendRequests") {
+      const userDetails = await User.findById(user._id).populate(
+        "friendRequests",
+        "_id userName email profileURI isOnline"
+      );
+
+      if (!userDetails || userDetails.friendRequests.length === 0) {
+        return res
+          .status(404)
+          .json({ success: false, message: "No requests. Maybe try adding them?" });
+      }
+
+      return res
+        .status(200)
+        .json({ success: true, friendRequests: userDetails.friendRequests ?? [] });
     } else {
       return res
         .status(400)
