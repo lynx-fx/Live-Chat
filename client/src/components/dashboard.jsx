@@ -29,7 +29,7 @@ function Dashboard() {
 
   useEffect(() => {
     const getUserDetails = async () => {
-      const response = await fetch(`${BACKEND}/api/user/getUserDetails`, {
+      const response = await fetch(`${BACKEND}/api/user/getUserDetails?action=getUserDetails`, {
         method: "GET",
         headers: {
           Content_Type: "application/json",
@@ -163,15 +163,12 @@ function Dashboard() {
   };
 
   const getFriendRequests = async () => {
-    const response = await fetch(`${BACKEND}/api/user/handleFriends`, {
-      method: "POST",
+    const response = await fetch(`${BACKEND}/api/user/getUserDetails?action=getUserFriendRequests`, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
       credentials: "include",
-      body: JSON.stringify({
-        action: "getfriendRequests",
-      }),
     });
 
     const data = await response.json();

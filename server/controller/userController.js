@@ -8,6 +8,7 @@ const { tokenExtractor } = require("../util/tokenExtractor.js");
 exports.getUserDetails = async (req, res) => {
   try {
     const token = tokenExtractor(req);
+    const action = req.query.action;
 
     if (!token) {
       return res
@@ -24,7 +25,45 @@ exports.getUserDetails = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    return res.status(200).json({ success: true, user });
+    if (action === "getUserDetails") {
+      return res.status(200).json({ success: true, user });
+    } else if (action === "getUserFriends") {
+      const userDetails = await User.findById(user._id).populate(
+        "friends",
+        "userName email profileURI isOnline"
+      );
+
+      if (!userDetails || userDetails.friends.length === 0) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Try making new friends :)" });
+      }
+
+      return res
+        .status(200)
+        .json({ success: true, friends: userDetails.friends ?? [] });
+    } else if (action === "getUserFriendRequests") {
+      const userDetails = await User.findById(user._id).populate(
+        "friendRequests",
+        "_id userName email profileURI isOnline"
+      );
+
+      if (!userDetails || userDetails.friendRequests.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "No requests. Maybe try adding them?",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        friendRequests: userDetails.friendRequests ?? [],
+      });
+    } else {
+      return res
+        .status(400)
+        .json({ success: false, message: "No action provided" });
+    }
   } catch (err) {
     console.log("Error while getting user details: ", err);
     return res
@@ -36,7 +75,7 @@ exports.getUserDetails = async (req, res) => {
 exports.handleFriends = async (req, res) => {
   try {
     const { friendId, friendEmail, action } = req.body;
-    
+
     const token = tokenExtractor(req);
     if (!token) {
       return res
@@ -47,9 +86,7 @@ exports.handleFriends = async (req, res) => {
     const decode = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findOne({ email: decode.email });
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User found" });
+      return res.status(404).json({ success: false, message: "User found" });
     }
 
     let friend = await User.findById(friendId);
@@ -136,36 +173,6 @@ exports.handleFriends = async (req, res) => {
         message: "Friend removed successfully",
         friends: updatedFriends,
       });
-    } else if (action == "getfriends") {
-      const userDetails = await User.findById(user._id).populate(
-        "friends",
-        "userName email profileURI isOnline"
-      );
-
-      if (!userDetails || userDetails.friends.length === 0) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Try making new friends :)" });
-      }
-
-      return res
-        .status(200)
-        .json({ success: true, friends: userDetails.friends ?? [] });
-    } else if (action == "getfriendRequests") {
-      const userDetails = await User.findById(user._id).populate(
-        "friendRequests",
-        "_id userName email profileURI isOnline"
-      );
-
-      if (!userDetails || userDetails.friendRequests.length === 0) {
-        return res
-          .status(404)
-          .json({ success: false, message: "No requests. Maybe try adding them?" });
-      }
-
-      return res
-        .status(200)
-        .json({ success: true, friendRequests: userDetails.friendRequests ?? [] });
     } else {
       return res
         .status(400)
