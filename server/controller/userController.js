@@ -132,16 +132,9 @@ exports.handleFriends = async (req, res) => {
         message: "Friend request rejected successfully",
       });
     } else if (action == "sendFriendRequest") {
-      const friendReqReceiver = await User.findOne({ email: friendEmail });
-
-      if (!friendReqReceiver) {
-        return res
-          .status(404)
-          .json({ success: false, message: "User not found" });
-      }
-      friendReqReceiver.friendRequests.push(decode.id);
-      await friendReqReceiver.save();
-
+      await User.findByIdAndUpdate(friend._id, {
+        $addToSet: { friendRequests: user._id },
+      });
       return res
         .status(200)
         .json({ success: true, message: "Friend request sent successfully" });

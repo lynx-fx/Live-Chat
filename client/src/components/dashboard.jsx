@@ -194,20 +194,19 @@ function Dashboard() {
       });
 
       const data = await response.json();
-      if(response.ok && data.success){
+      if (response.ok && data.success) {
         toast.success(data.message || "Friend request accepted");
-        setFriends(data.friends);
-                getFriendRequests();
-
-      } else{
-        toast.error(data.message || "Failed to accept friend request")
+        // setFriends(data.friends);
+        getFriendRequests();
+      } else {
+        toast.error(data.message || "Failed to accept friend request");
       }
     } catch (err) {
       console.log("Error while accepting friend request: ", err);
       toast.error("Something went wrong. Please try again later.");
     }
   };
-  
+
   const handleDeclineRequest = async (requestId) => {
     try {
       const response = await fetch(`${BACKEND}/api/user/handleFriends`, {
@@ -221,13 +220,13 @@ function Dashboard() {
           action: "rejectFriendRequest",
         }),
       });
-  
+
       const data = await response.json();
-      if(response.ok && data.success){
+      if (response.ok && data.success) {
         toast.success(data.message || "Friend request rejected");
         getFriendRequests();
-      } else{
-        toast.error(data.message || "Failed to reject friend request")
+      } else {
+        toast.error(data.message || "Failed to reject friend request");
       }
     } catch (err) {
       console.log("Error while accepting friend request: ", err);
