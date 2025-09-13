@@ -4,7 +4,7 @@ const User = require("../model/userModel");
 
 const { tokenExtractor } = require("../util/tokenExtractor.js");
 
-// TODO: Make get details modular
+// DONE: Make get details modular
 exports.getUserDetails = async (req, res) => {
   try {
     const token = tokenExtractor(req);
@@ -99,7 +99,7 @@ exports.handleFriends = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    if (action == "accept") {
+    if (action == "acceptFriendRequest") {
       // updating user's friend list
       await User.findByIdAndUpdate(user._id, {
         $pull: { friendRequests: friend._id },
@@ -120,22 +120,16 @@ exports.handleFriends = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: "Friend request accepted",
-        friends: updatedFriends,
+        friends: updatedFriends.friends,
       });
-    } else if (action == "reject") {
+    } else if (action == "rejectFriendRequest") {
       await User.findByIdAndUpdate(friend._id, {
         $addToSet: { friendRequests: user._id },
       });
 
-      const updatedFriendRequests = await User.findById(user._id).populate(
-        "friendRequests",
-        "username email profileURI"
-      );
-
       return res.status(200).json({
         success: true,
         message: "Friend request rejected successfully",
-        updatedFriendRequests,
       });
     } else if (action == "sendFriendRequest") {
       const friendReqReceiver = await User.findOne({ email: friendEmail });
@@ -151,7 +145,7 @@ exports.handleFriends = async (req, res) => {
       return res
         .status(200)
         .json({ success: true, message: "Friend request sent successfully" });
-    } else if (action == "remove") {
+    } else if (action == "removeFriend") {
       // updating user's friend list
       await User.findByIdAndUpdate(user._id, {
         $pull: { friends: friend._id },

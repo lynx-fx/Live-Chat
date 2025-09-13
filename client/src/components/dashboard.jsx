@@ -29,13 +29,16 @@ function Dashboard() {
 
   useEffect(() => {
     const getUserDetails = async () => {
-      const response = await fetch(`${BACKEND}/api/user/getUserDetails?action=getUserDetails`, {
-        method: "GET",
-        headers: {
-          Content_Type: "application/json",
-        },
-        credentials: "include",
-      });
+      const response = await fetch(
+        `${BACKEND}/api/user/getUserDetails?action=getUserDetails`,
+        {
+          method: "GET",
+          headers: {
+            Content_Type: "application/json",
+          },
+          credentials: "include",
+        }
+      );
       const data = await response.json();
       if (response.ok && data.success) {
         setUserDetails(data.user);
@@ -51,7 +54,7 @@ function Dashboard() {
     getFriendRequests();
   }, [showFriendPopup]);
 
-  const [friends] = useState([
+  const [friends, setFriends] = useState([
     {
       id: 1,
       name: "Alice Johnson",
@@ -88,13 +91,7 @@ function Dashboard() {
     ],
   });
 
-  const [friendRequests, setFriendRequests] = useState([
-    {
-      _id: 1,
-      userName: "Emma Thompson",
-      profileURI: "/alice.png?height=40&width=40",
-    },
-  ]);
+  const [friendRequests, setFriendRequests] = useState([]);
 
   const filteredFriends = friends.filter((friend) =>
     friend.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -163,13 +160,16 @@ function Dashboard() {
   };
 
   const getFriendRequests = async () => {
-    const response = await fetch(`${BACKEND}/api/user/getUserDetails?action=getUserFriendRequests`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
+    const response = await fetch(
+      `${BACKEND}/api/user/getUserDetails?action=getUserFriendRequests`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      }
+    );
 
     const data = await response.json();
     if (!response.ok || !data.success) {
@@ -179,14 +179,60 @@ function Dashboard() {
     setFriendRequests(data.friendRequests || []);
   };
 
-  const handleAcceptRequest = (requestId) => {
-    console.log("[v0] Accepting friend request:", requestId);
-    // Add logic to accept friend request
-  };
+  const handleAcceptRequest = async (requestId) => {
+    try {
+      const response = await fetch(`${BACKEND}/api/user/handleFriends`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          friendId: requestId,
+          action: "acceptFriendRequest",
+        }),
+      });
 
-  const handleDeclineRequest = (requestId) => {
-    console.log("[v0] Declining friend request:", requestId);
-    // Add logic to decline friend request
+      const data = await response.json();
+      if(response.ok && data.success){
+        toast.success(data.message || "Friend request accepted");
+        setFriends(data.friends);
+                getFriendRequests();
+
+      } else{
+        toast.error(data.message || "Failed to accept friend request")
+      }
+    } catch (err) {
+      console.log("Error while accepting friend request: ", err);
+      toast.error("Something went wrong. Please try again later.");
+    }
+  };
+  
+  const handleDeclineRequest = async (requestId) => {
+    try {
+      const response = await fetch(`${BACKEND}/api/user/handleFriends`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          friendId: requestId,
+          action: "rejectFriendRequest",
+        }),
+      });
+  
+      const data = await response.json();
+      if(response.ok && data.success){
+        toast.success(data.message || "Friend request rejected");
+        getFriendRequests();
+      } else{
+        toast.error(data.message || "Failed to reject friend request")
+      }
+    } catch (err) {
+      console.log("Error while accepting friend request: ", err);
+      toast.error("Something went wrong. Please try again later.");
+    }
   };
 
   return (
