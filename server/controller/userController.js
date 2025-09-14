@@ -72,6 +72,7 @@ exports.getUserDetails = async (req, res) => {
   }
 };
 
+// TODO: Check if friend already exists or not while adding new friends
 exports.handleFriends = async (req, res) => {
   try {
     const { friendId, friendEmail, action } = req.body;
@@ -123,8 +124,8 @@ exports.handleFriends = async (req, res) => {
         friends: updatedFriends.friends,
       });
     } else if (action == "rejectFriendRequest") {
-      await User.findByIdAndUpdate(friend._id, {
-        $addToSet: { friendRequests: user._id },
+      await User.findByIdAndUpdate(user._id, {
+        $pull: { friendRequests: friend._id },
       });
 
       return res.status(200).json({

@@ -50,15 +50,17 @@ function Dashboard() {
     getUserDetails();
   }, []);
 
-  useEffect(() => {
-    getFriendRequests();
-  }, [showFriendPopup]);
+  // useEffect(() => {
+  //   if (showFriendPopup) {
+  //     getFriendRequests();
+  //   }
+  // }, [showFriendPopup]);
 
   const [friends, setFriends] = useState([
     {
-      id: 1,
-      name: "Alice Johnson",
-      avatar: "/alice.png?height=40&width=40",
+      _id: 1,
+      userName: "Alice Johnson",
+      profileURI: "/alice.png?height=40&width=40",
       online: true,
       lastMessage: "Pretty good! Working on some new projects",
       timestamp: "2:30 PM",
@@ -94,7 +96,7 @@ function Dashboard() {
   const [friendRequests, setFriendRequests] = useState([]);
 
   const filteredFriends = friends.filter((friend) =>
-    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+    friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const scrollToBottom = () => {
@@ -132,8 +134,13 @@ function Dashboard() {
     // Add logout logic here
     window.location.href = "/";
   };
-  // API calls section
 
+  const handleFriendPopup = () => {
+    getFriendRequests();
+    setShowFriendPopup(true);
+  }
+
+  // API calls section
   const handleSendFriendRequest = async (e) => {
     e.preventDefault();
     if (!friendRequestText.trim()) return;
@@ -196,7 +203,7 @@ function Dashboard() {
       const data = await response.json();
       if (response.ok && data.success) {
         toast.success(data.message || "Friend request accepted");
-        // setFriends(data.friends);
+        setFriends(data.friends);
         getFriendRequests();
       } else {
         toast.error(data.message || "Failed to accept friend request");
@@ -297,7 +304,7 @@ function Dashboard() {
             <h4>Friends ({filteredFriends.length})</h4>
             <button
               className="add-friend-btn"
-              onClick={() => setShowFriendPopup(true)}
+              onClick={handleFriendPopup}
             >
               {/* //mark */}
               <BsPersonPlus />
@@ -306,9 +313,9 @@ function Dashboard() {
           <div className="friends-scroll">
             {filteredFriends.map((friend) => (
               <motion.div
-                key={friend.id}
+                key={friend._id}
                 className={`friend-item ${
-                  selectedChat?.id === friend.id ? "active" : ""
+                  selectedChat?.id === friend._id ? "active" : ""
                 }`}
                 onClick={() => setSelectedChat(friend)}
                 whileHover={{ backgroundColor: "#f8f9fa" }}
@@ -316,8 +323,8 @@ function Dashboard() {
               >
                 <div className="friend-avatar-container">
                   <img
-                    src={friend.avatar || "/placeholder.svg"}
-                    alt={friend.name}
+                    src={friend.profileURI || "/placeholder.svg"}
+                    alt={friend.userName}
                     className="friend-avatar"
                   />
                   <div
@@ -327,7 +334,7 @@ function Dashboard() {
                   ></div>
                 </div>
                 <div className="friend-info">
-                  <div className="friend-name">{friend.name}</div>
+                  <div className="friend-name">{friend.userName}</div>
                   <div className="friend-last-message">
                     {friend.lastMessage}
                   </div>
@@ -347,12 +354,12 @@ function Dashboard() {
             <div className="chat-header">
               <div className="chat-user-info">
                 <img
-                  src={selectedChat.avatar || "/placeholder.svg"}
-                  alt={selectedChat.name}
+                  src={selectedChat.profileURI || "/placeholder.svg"}
+                  alt={selectedChat.userName}
                   className="chat-avatar"
                 />
                 <div>
-                  <h3>{selectedChat.name}</h3>
+                  <h3>{selectedChat.userName}</h3>
                   <span
                     className={`chat-status ${
                       selectedChat.online ? "online" : "offline"
@@ -370,7 +377,7 @@ function Dashboard() {
             {/* Messages */}
             <div className="messages-container">
               <AnimatePresence>
-                {(messages[selectedChat.id] || []).map((msg) => (
+                {(messages[selectedChat._id] || []).map((msg) => (
                   <motion.div
                     key={msg.id}
                     className={`message ${
