@@ -65,6 +65,14 @@ function Dashboard() {
       lastMessage: "Pretty good! Working on some new projects",
       timestamp: "2:30 PM",
     },
+    {
+      _id: 2,
+      userName: "Alice Johnson",
+      profileURI: "/alice.png?height=40&width=40",
+      online: true,
+      lastMessage: "Pretty good! Working on some new projects",
+      timestamp: "2:30 PM",
+    },
   ]);
 
   const [messages, setMessages] = useState({
