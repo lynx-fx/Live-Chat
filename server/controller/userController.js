@@ -59,6 +59,17 @@ exports.getUserDetails = async (req, res) => {
         success: true,
         friendRequests: userDetails.friendRequests ?? [],
       });
+    } else if (action == "getFriends") {
+      const userDetails = await User.findById(user._id).populate(
+        "friends",
+        "_id userName email profileURI isOnline"
+      );
+
+      if(userDetails.length === 0 || !userDetails){
+        return res.status(404).json({success: false, message: "No friends found :("});
+      }
+
+      return res.status(200).json({success: true, friends: userDetails.friends})
     } else {
       return res
         .status(400)
@@ -115,7 +126,7 @@ exports.handleFriends = async (req, res) => {
       // gets updated friend's list to refresh list
       const updatedFriends = await User.findById(user._id).populate(
         "friends",
-        "username email profileURI isOnline"
+        "userName email profileURI isOnline"
       );
 
       return res.status(200).json({

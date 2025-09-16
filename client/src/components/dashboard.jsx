@@ -47,7 +47,28 @@ function Dashboard() {
         <Navigate to="/" />;
       }
     };
+    const getFriends = async () => {
+      const response = await fetch(
+        `${BACKEND}/api/user/getUserDetails?action=getFriends`,
+        {
+          method: "GET",
+          headers: {
+            "content-type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+      console.log(data.friends);
+
+      if (response.ok && data.success) {
+        setFriends(data.friends || []);
+      } else {
+        toast.info(data.message || "No friends found. Try adding some!");
+      }
+    };
     getUserDetails();
+    getFriends();
   }, []);
 
   // useEffect(() => {
@@ -56,27 +77,10 @@ function Dashboard() {
   //   }
   // }, [showFriendPopup]);
 
-  const [friends, setFriends] = useState([
-    {
-      _id: 1,
-      userName: "Alice Johnson",
-      profileURI: "/alice.png?height=40&width=40",
-      online: true,
-      lastMessage: "Pretty good! Working on some new projects",
-      timestamp: "2:30 PM",
-    },
-    {
-      _id: 2,
-      userName: "Alice Johnson",
-      profileURI: "/alice.png?height=40&width=40",
-      online: true,
-      lastMessage: "Pretty good! Working on some new projects",
-      timestamp: "2:30 PM",
-    },
-  ]);
+  const [friends, setFriends] = useState([]);
 
   const [messages, setMessages] = useState({
-    1: [
+    '68befbad1964e937b7ef968d': [
       {
         id: 1,
         text: "Hey! How are you?",
@@ -103,9 +107,9 @@ function Dashboard() {
 
   const [friendRequests, setFriendRequests] = useState([]);
 
-  const filteredFriends = friends.filter((friend) =>
-    friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const filteredFriends = friends.filter((friend) =>
+  //   friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -146,7 +150,7 @@ function Dashboard() {
   const handleFriendPopup = () => {
     getFriendRequests();
     setShowFriendPopup(true);
-  }
+  };
 
   // API calls section
   const handleSendFriendRequest = async (e) => {
@@ -212,6 +216,7 @@ function Dashboard() {
       if (response.ok && data.success) {
         toast.success(data.message || "Friend request accepted");
         setFriends(data.friends);
+        console.log(data.friends);
         getFriendRequests();
       } else {
         toast.error(data.message || "Failed to accept friend request");
@@ -309,17 +314,14 @@ function Dashboard() {
         {/* Friends List */}
         <div className="friends-list">
           <div className="friends-header">
-            <h4>Friends ({filteredFriends.length})</h4>
-            <button
-              className="add-friend-btn"
-              onClick={handleFriendPopup}
-            >
+            <h4>Friends ({friends.length})</h4>
+            <button className="add-friend-btn" onClick={handleFriendPopup}>
               {/* //mark */}
               <BsPersonPlus />
             </button>
           </div>
           <div className="friends-scroll">
-            {filteredFriends.map((friend) => (
+            {friends.map((friend) => (
               <motion.div
                 key={friend._id}
                 className={`friend-item ${
