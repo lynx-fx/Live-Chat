@@ -85,21 +85,21 @@ function Dashboard() {
     "68befbad1964e937b7ef968d": [
       {
         id: 1,
-        text: "Hey! How are you?",
+        content: "Hey! How are you?",
         sender: "Alice Johnson",
         timestamp: "2:30 PM",
         isMe: false,
       },
       {
         id: 2,
-        text: "I'm doing great! How about you?",
+        content: "I'm doing great! How about you?",
         sender: "Me",
         timestamp: "2:31 PM",
         isMe: true,
       },
       {
         id: 3,
-        text: "Pretty good! Working on some new projects",
+        content: "Pretty good! Working on some new projects",
         sender: "Alice Johnson",
         timestamp: "2:32 PM",
         isMe: false,
@@ -121,25 +121,58 @@ function Dashboard() {
     scrollToBottom();
   }, [messages, selectedChat]);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!message.trim() || !selectedChat) return;
 
-    const newMessage = {
-      id: Date.now(),
-      text: message,
-      sender: "Me",
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      isMe: true,
-    };
+    // const newMessage = {
+    // id: Date.now(),
+    // text: message,
+    // sender: "Me",
+    // timestamp: new Date().toLocaleTimeString([], {
+    // hour: "2-digit",
+    // minute: "2-digit",
+    // }),
+    // isMe: true,
+    // };
 
-    setMessages((prev) => ({
-      ...prev,
-      [selectedChat.id]: [...(prev[selectedChat.id] || []), newMessage],
-    }));
+    try {
+      setIsLoading(true);
+      const response = await fetch(`${BACKEND}/api/message/sendMessage`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          receiverId: selectedChat._id,
+          content: message,
+        }),
+      });
+      const data = await response.json();
+      setIsLoading(false);
+      setMessage("");
+      data.newMessage.isMe = true;
+    console.log(data.newMessage);
+    
+      if (response.ok && data.success) {
+        setMessages((prev) => ({
+          ...prev,
+          [selectedChat.id]: [
+            ...(prev[selectedChat.id] || []),
+            data.newMessage,
+          ],
+        }));
+      } else {
+        setMessage("");
+        toast.error(data.message || "Failed to send message");
+      }
+    } catch (err) {
+      setMessage("");
+      setIsLoading(false);
+      console.log(err);
+      toast.error("Something went wrong. Please try again later");
+    }
 
     setMessage("");
   };
@@ -421,9 +454,9 @@ function Dashboard() {
                       exit={{ opacity: 0, y: -20 }}
                     >
                       <div className="message-content">
-                        <p>{msg.text}</p>
+                        <p>{msg.content}</p>
                         <span className="message-timestamp">
-                          {msg.timestamp}
+                          {msg.createdAt}
                         </span>
                       </div>
                     </motion.div>

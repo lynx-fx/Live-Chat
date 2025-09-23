@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const User = require("../model/userModel");
+const Message = require("../model/messageModel.js");
 
 const { tokenExtractor } = require("../util/tokenExtractor.js");
 
@@ -65,11 +66,15 @@ exports.getUserDetails = async (req, res) => {
         "_id userName email profileURI isOnline"
       );
 
-      if(userDetails.length === 0 || !userDetails){
-        return res.status(404).json({success: false, message: "No friends found :("});
+      if (userDetails.length === 0 || !userDetails) {
+        return res
+          .status(404)
+          .json({ success: false, message: "No friends found :(" });
       }
 
-      return res.status(200).json({success: true, friends: userDetails.friends})
+      return res
+        .status(200)
+        .json({ success: true, friends: userDetails.friends });
     } else {
       return res
         .status(400)
@@ -183,5 +188,37 @@ exports.handleFriends = async (req, res) => {
       success: false,
       message: "Something went wrong while handling friend request",
     });
+  }
+};
+
+exports.sendMessage = async (req, res) => {
+  try {
+    const {friendId, content} = req.body;
+
+    const token = tokenExtractor(req);
+    if(!token){
+      return res.status(404).json({success: false, message: "No token provided"})
+    }
+
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decode._id);
+    if(!user){
+      return res.status(404).json({success: false, message: "User not found"})
+    }
+
+    const friend = await User.findById(friendId);
+    if(!user){
+      return res.status(404).json({success: false, message: "Friend not found"})
+    }
+
+    
+  } catch (err) {
+    console.log(err);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Something went wrong while sending message",
+      });
   }
 };
