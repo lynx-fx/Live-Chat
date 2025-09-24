@@ -29,6 +29,36 @@ function Dashboard() {
     : import.meta.env.VITE_BACKEND_LOCAL;
   const [isloading, setIsLoading] = useState(false);
 
+  const [messages, setMessages] = useState({
+    "68befbad1964e937b7ef968d": [
+      {
+        id: 1,
+        content: "Hey! How are you?",
+        sender: "Alice Johnson",
+        timestamp: "2:30 PM",
+        isMe: false,
+      },
+      {
+        id: 2,
+        content: "I'm doing great! How about you?",
+        sender: "Me",
+        timestamp: "2:31 PM",
+        isMe: true,
+      },
+      {
+        id: 3,
+        content: "Pretty good! Working on some new projects",
+        sender: "Alice Johnson",
+        timestamp: "2:32 PM",
+        isMe: false,
+      },
+    ],
+  });
+
+  useEffect(() => {
+    console.log(messages);
+  }, [messages]);
+
   useEffect(() => {
     setIsLoading(true);
     try {
@@ -81,32 +111,6 @@ function Dashboard() {
 
   const [friends, setFriends] = useState([]);
 
-  const [messages, setMessages] = useState({
-    "68befbad1964e937b7ef968d": [
-      {
-        id: 1,
-        content: "Hey! How are you?",
-        sender: "Alice Johnson",
-        timestamp: "2:30 PM",
-        isMe: false,
-      },
-      {
-        id: 2,
-        content: "I'm doing great! How about you?",
-        sender: "Me",
-        timestamp: "2:31 PM",
-        isMe: true,
-      },
-      {
-        id: 3,
-        content: "Pretty good! Working on some new projects",
-        sender: "Alice Johnson",
-        timestamp: "2:32 PM",
-        isMe: false,
-      },
-    ],
-  });
-
   const [friendRequests, setFriendRequests] = useState([]);
 
   // const filteredFriends = friends.filter((friend) =>
@@ -153,13 +157,11 @@ function Dashboard() {
       setIsLoading(false);
       setMessage("");
       data.newMessage.isMe = true;
-    console.log(data.newMessage);
-    
       if (response.ok && data.success) {
         setMessages((prev) => ({
           ...prev,
-          [selectedChat.id]: [
-            ...(prev[selectedChat.id] || []),
+          [selectedChat._id]: [
+            ...(prev[selectedChat._id] || []),
             data.newMessage,
           ],
         }));
@@ -308,6 +310,17 @@ function Dashboard() {
     }
   };
 
+  const localTime = (date) => {
+    return new Date(date).toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
   return (
     <>
       {isloading && <Loading />}
@@ -395,7 +408,7 @@ function Dashboard() {
                     />
                     <div
                       className={`online-indicator ${
-                        friend.online ? "online" : "offline"
+                        friend.isOnline ? "online" : "offline"
                       }`}
                     ></div>
                   </div>
@@ -428,10 +441,10 @@ function Dashboard() {
                     <h3>{selectedChat.userName}</h3>
                     <span
                       className={`chat-status ${
-                        selectedChat.online ? "online" : "offline"
+                        selectedChat.isOnline ? "online" : "offline"
                       }`}
                     >
-                      {selectedChat.online ? "Online" : "Offline"}
+                      {selectedChat.isOnline ? "Online" : "Offline"}
                     </span>
                   </div>
                 </div>
@@ -445,7 +458,7 @@ function Dashboard() {
                 <AnimatePresence>
                   {(messages[selectedChat._id] || []).map((msg) => (
                     <motion.div
-                      key={msg.id}
+                      key={msg._id}
                       className={`message ${
                         msg.isMe ? "message-sent" : "message-received"
                       }`}
@@ -456,7 +469,7 @@ function Dashboard() {
                       <div className="message-content">
                         <p>{msg.content}</p>
                         <span className="message-timestamp">
-                          {msg.createdAt}
+                          {localTime(msg.createdAt)}
                         </span>
                       </div>
                     </motion.div>
