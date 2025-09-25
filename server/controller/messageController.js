@@ -4,6 +4,7 @@ const User = require("../model/userModel");
 const Message = require("../model/messageModel.js");
 
 const { tokenExtractor } = require("../util/tokenExtractor.js");
+const { encryptMessage, decryptMessage } = require("../util/encryption.js");
 
 exports.sendMessage = async (req, res) => {
   try {
@@ -31,16 +32,20 @@ exports.sendMessage = async (req, res) => {
         .json({ success: false, message: "Friend not found" });
     }
 
+    const encrypt = encryptMessage(content, process.env.ENCRYPTION_SECRET);
+
     const newMessage = new Message({
       sender: user.id,
       receiver: receiverId,
-      content,
+      content: encrypt,
       hasReceiverSeen: false,
       hasSenderSeen: true,
     });
     await newMessage.save();
 
-    return res.status(200).json({ success: true, newMessage });
+    const messageObj = newMessage.toObject();
+    messageObj.content = decryptMessage(encrypt, process.env.ENCRYPTION_SECRET);
+    return res.status(200).json({ success: true, newMessage: messageObj });
   } catch (err) {
     console.log(err);
     return res.status(500).json({
