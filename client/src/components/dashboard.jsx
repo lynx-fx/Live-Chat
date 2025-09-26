@@ -15,6 +15,8 @@ import "../styles/dashboard.css";
 import { toast } from "sonner";
 import Loading from "./loading.jsx";
 
+// TODO: Fetching previous messages when a chat is selected
+
 function Dashboard() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,36 +30,7 @@ function Dashboard() {
     ? import.meta.env.VITE_BACKEND_HOSTED
     : import.meta.env.VITE_BACKEND_LOCAL;
   const [isloading, setIsLoading] = useState(false);
-
-  const [messages, setMessages] = useState({
-    "68befbad1964e937b7ef968d": [
-      {
-        id: 1,
-        content: "Hey! How are you?",
-        sender: "Alice Johnson",
-        timestamp: "2:30 PM",
-        isMe: false,
-      },
-      {
-        id: 2,
-        content: "I'm doing great! How about you?",
-        sender: "Me",
-        timestamp: "2:31 PM",
-        isMe: true,
-      },
-      {
-        id: 3,
-        content: "Pretty good! Working on some new projects",
-        sender: "Alice Johnson",
-        timestamp: "2:32 PM",
-        isMe: false,
-      },
-    ],
-  });
-
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
+  const [messages, setMessages] = useState({});
 
   useEffect(() => {
     setIsLoading(true);
@@ -108,6 +81,39 @@ function Dashboard() {
       toast.error("Something went wrong. Please try again later");
     }
   }, []);
+
+  useEffect(() => {
+    if (!selectedChat) {
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const fetchMessages = async () => {
+        const response = await fetch(
+          `${BACKEND}/api/message/getMessages?id=${selectedChat._id}`,
+          {
+            method: "GET",
+            headers: {
+              "content-type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        const data = await response.json();
+        setIsLoading(false);
+        if (response.ok && data.success) {
+          console.log(data.messages);
+        } else {
+          toast.error(data.message || "Failed to fetch messages");
+        }
+      };
+      fetchMessages();
+    } catch (err) {
+      setIsLoading(false);
+      toast.error("Something went wrong. Please try again later");
+    }
+  }, [selectedChat]);
 
   const [friends, setFriends] = useState([]);
 

@@ -22,7 +22,7 @@ exports.sendMessage = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: "Unauthorized access" });
     }
 
     const receiver = await User.findById(receiverId);
@@ -38,8 +38,6 @@ exports.sendMessage = async (req, res) => {
       sender: user.id,
       receiver: receiverId,
       content: encrypt,
-      hasReceiverSeen: false,
-      hasSenderSeen: true,
     });
     await newMessage.save();
 
@@ -51,6 +49,53 @@ exports.sendMessage = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Something went wrong while sending message",
+    });
+  }
+};
+
+exports.getMessages = async (req, res) => {
+  try {
+    const friendId = req.query.id;
+    const token = tokenExtractor(req);
+    if (!token) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Unauthorized access" });
+    }
+
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decode.id);
+    if (!user) {
+      return resP
+        .status(404)
+        .json({ success: false, message: "Unauthorized access" });
+    }
+
+    const friend = await User.findById(friendId);
+    if (!friend) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Friend doesn't exists" });
+    }
+
+    // getting messages via id, which could be of either sender or receiver but must have both user's at each end.
+    const messages = await Message.find({
+      $or: [
+        { sender: user._id, receiver: friend._id },
+        { sender: friend._id, receiver: user._id },
+      ],
+    }).sort({ createdAt: 1 });
+
+    const decryptedMessage = messages.map((msg) => ({
+      ...msg.toObject(),
+      content: decryptMessage(msg.content, process.env.ENCRYPTION_SECRET),
+    }));
+    return res.status(200).json({ success: true, messages: decryptedMessage });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      message:
+        "Something went wrong while getting messages. Please try again later",
     });
   }
 };

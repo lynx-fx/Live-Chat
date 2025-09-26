@@ -23,7 +23,7 @@ exports.getUserDetails = async (req, res) => {
     if (!user) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: "Unauthorized access" });
     }
 
     if (action === "getUserDetails") {
@@ -113,7 +113,7 @@ exports.handleFriends = async (req, res) => {
     if (!friend) {
       return res
         .status(404)
-        .json({ success: false, message: "User not found" });
+        .json({ success: false, message: "Unauthorized access" });
     }
 
     if (action == "acceptFriendRequest") {
@@ -203,7 +203,7 @@ exports.sendMessage = async (req, res) => {
     const decode = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decode._id);
     if(!user){
-      return res.status(404).json({success: false, message: "User not found"})
+      return res.status(404).json({success: false, message: "Unauthorized access"})
     }
 
     const friend = await User.findById(friendId);

@@ -10,14 +10,6 @@ const messageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    hasSenderSeen: {
-      type: Boolean,
-      required: true,
-    },
-    hasReceiverSeen: {
-      type: Boolean,
-      required: true,
-    },
     content: {
       type: Object,
       required: true,
