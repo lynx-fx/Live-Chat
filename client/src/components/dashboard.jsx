@@ -15,7 +15,7 @@ import "../styles/dashboard.css";
 import { toast } from "sonner";
 import Loading from "./loading.jsx";
 
-// TODO: Fetching previous messages when a chat is selected
+// DONE: Fetching previous messages when a chat is selected
 
 function Dashboard() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -116,12 +116,7 @@ function Dashboard() {
   }, [selectedChat]);
 
   const [friends, setFriends] = useState([]);
-
   const [friendRequests, setFriendRequests] = useState([]);
-
-  // const filteredFriends = friends.filter((friend) =>
-  //   friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
-  // );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -131,6 +126,10 @@ function Dashboard() {
     scrollToBottom();
   }, [messages, selectedChat]);
 
+  // const filteredFriends = friends.filter((friend) =>
+  //   friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!message.trim() || !selectedChat) return;
@@ -138,7 +137,6 @@ function Dashboard() {
     // const newMessage = {
     // id: Date.now(),
     // text: message,
-    // sender: "Me",
     // timestamp: new Date().toLocaleTimeString([], {
     // hour: "2-digit",
     // minute: "2-digit",
@@ -326,6 +324,16 @@ function Dashboard() {
       hour12: true,
     });
   };
+
+  const isMe = (id) => {
+    if (!userDetails || !userDetails?._id) return false;
+
+    if(userDetails._id === id) {
+      return true;
+    } else{
+      return false;
+    }
+  }
 
   return (
     <>

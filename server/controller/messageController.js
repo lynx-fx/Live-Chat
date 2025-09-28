@@ -78,7 +78,7 @@ exports.getMessages = async (req, res) => {
         .json({ success: false, message: "Friend doesn't exists" });
     }
 
-    // getting messages via id, which could be of either sender or receiver but must have both user's at each end.
+    // getting messages via id, which could be of either sender or receiver but must have both id's at each end.
     const messages = await Message.find({
       $or: [
         { sender: user._id, receiver: friend._id },
