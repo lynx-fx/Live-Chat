@@ -73,6 +73,19 @@ function Dashboard() {
           toast.info(data.message || "No friends found. Try adding some!");
         }
       };
+      const getLastMessages = async () => {
+        try{
+          const response = await fetch(`${BACKEND}/api/message/getLastMessages`,{
+            method: "GET",
+            headers: {
+              "content-type": "application/json",
+            }, credentials: "include",
+          })
+        }catch(err){
+          console.log(err);
+          toast.error("Something went wrong. Please try again later")
+        }
+      }
       getUserDetails();
       getFriends();
     } catch (err) {
@@ -104,11 +117,11 @@ function Dashboard() {
         setIsLoading(false);
         if (response.ok && data.success) {
           const formattedMessages = data.messages.map((msg) => ({
-            id: msg._id,
-            text: msg.content,
-            sender: isMe(msg.senderId) ? "Me" : selectedChat.userName,
-            timestamp: localTime(msg.createdAt),
-            isMe: isMe(msg.senderId),
+            _id: msg._id,
+            content: msg.content,
+            sender: isSenderMe(msg.sender) ? userDetails.userName : selectedChat.userName,
+            createdAt: localTime(msg.createdAt),
+            isMe: isSenderMe(msg.sender),
           }));
 
           setMessages((prev) => ({
@@ -336,10 +349,10 @@ function Dashboard() {
     });
   };
 
-  const isMe = (id) => {
+  const isSenderMe = (id) => {
     if (!userDetails || !userDetails?._id) return false;
 
-    if (userDetails._id === id) {
+    if (userDetails._id == id) {
       return true;
     } else {
       return false;
