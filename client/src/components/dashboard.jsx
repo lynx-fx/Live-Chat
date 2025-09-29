@@ -103,7 +103,18 @@ function Dashboard() {
         const data = await response.json();
         setIsLoading(false);
         if (response.ok && data.success) {
-          console.log(data.messages);
+          const formattedMessages = data.messages.map((msg) => ({
+            id: msg._id,
+            text: msg.content,
+            sender: isMe(msg.senderId) ? "Me" : selectedChat.userName,
+            timestamp: localTime(msg.createdAt),
+            isMe: isMe(msg.senderId),
+          }));
+
+          setMessages((prev) => ({
+            ...prev,
+            [selectedChat._id]: formattedMessages,
+          }));
         } else {
           toast.error(data.message || "Failed to fetch messages");
         }
@@ -328,12 +339,12 @@ function Dashboard() {
   const isMe = (id) => {
     if (!userDetails || !userDetails?._id) return false;
 
-    if(userDetails._id === id) {
+    if (userDetails._id === id) {
       return true;
-    } else{
+    } else {
       return false;
     }
-  }
+  };
 
   return (
     <>
