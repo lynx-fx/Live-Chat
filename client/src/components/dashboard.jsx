@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import Loading from "./loading.jsx";
 
 // DONE: Fetching previous messages when a chat is selected
+// TODO: Integration of socket.io for messaging
 
 function Dashboard() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -47,6 +48,8 @@ function Dashboard() {
           }
         );
         const data = await response.json();
+        console.log(data);
+
         if (response.ok && data.success) {
           setUserDetails(data.user);
         } else {

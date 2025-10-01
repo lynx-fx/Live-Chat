@@ -9,7 +9,6 @@ const { encryptMessage, decryptMessage } = require("../util/encryption.js");
 exports.sendMessage = async (req, res) => {
   try {
     const { receiverId, content } = req.body;
-
     const token = tokenExtractor(req);
     if (!token) {
       return res
@@ -101,43 +100,43 @@ exports.getMessages = async (req, res) => {
 };
 
 // TODO: Write logic for getting last messages for all friends
-exports.getLastMessages = async (req, res) => {
-  try {
-    const token = tokenExtractor(req);
-    if (!token) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Unauthorized access" });
-    }
+// exports.getLastMessages = async (req, res) => {
+//   try {
+//     const token = tokenExtractor(req);
+//     if (!token) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Unauthorized access" });
+//     }
 
-    const decode = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decode.id);
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Unauthorized access" });
-    }
+//     const decode = jwt.verify(token, process.env.JWT_SECRET);
+//     const user = await User.findById(decode.id);
+//     if (!user) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Unauthorized access" });
+//     }
 
-    const messages = await Message.find({
-      $or: [
-        { sender: user._id, receiver: friend._id },
-        { sender: friend._id, receiver: user._id },
-      ],
-    })
-      .sort({ createdAt: -1 })
-      .limit(1);
+//     const messages = await Message.find({
+//       $or: [
+//         { sender: user._id, receiver: friend._id },
+//         { sender: friend._id, receiver: user._id },
+//       ],
+//     })
+//       .sort({ createdAt: -1 })
+//       .limit(1);
 
-    const decryptedMessage = messages.map((msg) => ({
-      ...msg.toObject(),
-      content: decryptMessage(msg.content, process.env.ENCRYPTION_SECRET),
-    }));
-    return res.status(200).json({ success: true, messages: decryptedMessage });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({
-      success: false,
-      message:
-        "Something went wrong while getting last message. Try again later",
-    });
-  }
-};
+//     const decryptedMessage = messages.map((msg) => ({
+//       ...msg.toObject(),
+//       content: decryptMessage(msg.content, process.env.ENCRYPTION_SECRET),
+//     }));
+//     return res.status(200).json({ success: true, messages: decryptedMessage });
+//   } catch (err) {
+//     console.log(err);
+//     return res.status(500).json({
+//       success: false,
+//       message:
+//         "Something went wrong while getting last message. Try again later",
+//     });
+//   }
+// };
