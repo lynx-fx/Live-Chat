@@ -70,6 +70,7 @@ function Dashboard() {
         );
         setIsLoading(false);
         const data = await response.json();
+
         if (response.ok && data.success) {
           setFriends(data.friends || []);
         } else {
@@ -77,18 +78,22 @@ function Dashboard() {
         }
       };
       const getLastMessages = async () => {
-        try{
-          const response = await fetch(`${BACKEND}/api/message/getLastMessages`,{
-            method: "GET",
-            headers: {
-              "content-type": "application/json",
-            }, credentials: "include",
-          })
-        }catch(err){
+        try {
+          const response = await fetch(
+            `${BACKEND}/api/message/getLastMessages`,
+            {
+              method: "GET",
+              headers: {
+                "content-type": "application/json",
+              },
+              credentials: "include",
+            }
+          );
+        } catch (err) {
           console.log(err);
-          toast.error("Something went wrong. Please try again later")
+          toast.error("Something went wrong. Please try again later");
         }
-      }
+      };
       getUserDetails();
       getFriends();
     } catch (err) {
@@ -122,7 +127,9 @@ function Dashboard() {
           const formattedMessages = data.messages.map((msg) => ({
             _id: msg._id,
             content: msg.content,
-            sender: isSenderMe(msg.sender) ? userDetails.userName : selectedChat.userName,
+            sender: isSenderMe(msg.sender)
+              ? userDetails.userName
+              : selectedChat.userName,
             createdAt: localTime(msg.createdAt),
             isMe: isSenderMe(msg.sender),
           }));
@@ -148,10 +155,6 @@ function Dashboard() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, selectedChat]);
 
   // const filteredFriends = friends.filter((friend) =>
   //   friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -352,6 +355,29 @@ function Dashboard() {
     });
   };
 
+  const timeAgo = (date) => {
+  const now = new Date();
+  const past = new Date(date);
+  const diff = now - past;
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+
+  if (seconds < 60) return `${seconds}s`;
+  if (minutes < 60) return `${minutes}m`;
+  if (hours < 24) return `${hours}h`;
+  if (days < 7) return `${days}d`;
+  if (weeks < 4) return `${weeks}w`;
+  if (months < 12) return `${months}mo`;
+  return `${years}y`;
+};
+
+
   const isSenderMe = (id) => {
     if (!userDetails || !userDetails?._id) return false;
 
@@ -459,7 +485,9 @@ function Dashboard() {
                       {friend.lastMessage}
                     </div>
                   </div>
-                  <div className="friend-timestamp">{friend.timestamp}</div>
+                  <div className="friend-timestamp">
+                    {timeAgo(friend.lastMessageAt)}
+                  </div>
                 </motion.div>
               ))}
             </div>

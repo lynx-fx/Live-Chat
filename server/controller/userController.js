@@ -4,6 +4,7 @@ const User = require("../model/userModel");
 const Message = require("../model/messageModel.js");
 
 const { tokenExtractor } = require("../util/tokenExtractor.js");
+const { encryptMessage, decryptMessage } = require("../util/encryption.js");
 
 // DONE: Make get details modular
 exports.getUserDetails = async (req, res) => {
@@ -28,21 +29,6 @@ exports.getUserDetails = async (req, res) => {
 
     if (action === "getUserDetails") {
       return res.status(200).json({ success: true, user });
-    } else if (action === "getUserFriends") {
-      const userDetails = await User.findById(user._id).populate(
-        "friends",
-        "userName email profileURI isOnline"
-      );
-
-      if (!userDetails || userDetails.friends.length === 0) {
-        return res
-          .status(404)
-          .json({ success: false, message: "Try making new friends :)" });
-      }
-
-      return res
-        .status(200)
-        .json({ success: true, friends: userDetails.friends ?? [] });
     } else if (action === "getUserFriendRequests") {
       const userDetails = await User.findById(user._id).populate(
         "friendRequests",
@@ -60,22 +46,34 @@ exports.getUserDetails = async (req, res) => {
         success: true,
         friendRequests: userDetails.friendRequests ?? [],
       });
-    } else if (action == "getFriends") {
-      const userDetails = await User.findById(user._id).populate(
-        "friends",
-        "_id userName email profileURI isOnline"
-      );
+    } else if (action === "getFriends") {
+  const userDetails = await User.findById(user._id).populate(
+    "friends",
+    "_id userName email profileURI isOnline"
+  );
 
-      if (userDetails.length === 0 || !userDetails) {
-        return res
-          .status(404)
-          .json({ success: false, message: "No friends found :(" });
-      }
+  if (!userDetails || !userDetails.friends || userDetails.friends.length === 0) {
+    return res
+      .status(404)
+      .json({ success: false, message: "No friends found :(" });
+  }
 
-      return res
-        .status(200)
-        .json({ success: true, friends: userDetails.friends });
-    } else {
+  const lastMessages = await getLastMessages(user._id, userDetails.friends);
+  const friendsWithLastMsg = userDetails.friends.map(friend => {
+    const friendObj = friend.toObject();
+    const lastMsgObj = lastMessages.find(
+      msg => msg.friendId.toString() === friend._id.toString()
+    );
+
+    friendObj.lastMessage = lastMsgObj?.lastMessage || "";
+    friendObj.lastMessageAt = lastMsgObj?.createdAt || null;
+
+    return friendObj;
+  });
+
+  return res.status(200).json({ success: true, friends: friendsWithLastMsg });
+}
+else {
       return res
         .status(400)
         .json({ success: false, message: "No action provided" });
@@ -193,32 +191,71 @@ exports.handleFriends = async (req, res) => {
 
 exports.sendMessage = async (req, res) => {
   try {
-    const {friendId, content} = req.body;
+    const { friendId, content } = req.body;
 
     const token = tokenExtractor(req);
-    if(!token){
-      return res.status(404).json({success: false, message: "No token provided"})
+    if (!token) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No token provided" });
     }
 
     const decode = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decode._id);
-    if(!user){
-      return res.status(404).json({success: false, message: "Unauthorized access"})
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Unauthorized access" });
     }
 
     const friend = await User.findById(friendId);
-    if(!user){
-      return res.status(404).json({success: false, message: "Friend not found"})
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Friend not found" });
     }
-
-    
   } catch (err) {
     console.log(err);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Something went wrong while sending message",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while sending message",
+    });
+  }
+};
+
+const getLastMessages = async (userId, friends) => {
+  try {
+    const result = [];
+
+    for (const friend of friends) {
+      const lastMsg = await Message.findOne({
+        $or: [
+          { sender: userId, receiver: friend._id },
+          { sender: friend._id, receiver: userId },
+        ],
+      })
+        .sort({ createdAt: -1 })
+        .limit(1);
+
+      if (lastMsg) {
+        result.push({
+          friendId: friend._id,
+          lastMessage: decryptMessage(
+            lastMsg.content,
+            process.env.ENCRYPTION_SECRET
+          ),
+          createdAt: lastMsg.createdAt,
+        });
+      } else {
+        result.push({
+          friendId: friend._id,
+          lastMsg: "",
+          createdAt: null,
+        });
+      }
+    }
+    return result;
+  } catch (err) {
+    console.log(err);
   }
 };
