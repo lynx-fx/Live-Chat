@@ -9,6 +9,9 @@ const mongoose = require("mongoose");
 const authRouter = require("./routes/authRouter");
 const userRouter = require("./routes/userRouter");
 const messageRouter = require("./routes/messageRouter");
+const { setUserOnline, setUserOffline } = require("./services/userServices");
+const { tokenExtractor } = require("./util/tokenExtractor");
+const jwt = require("jsonwebtoken");
 
 const frontend =
   process.env.NODE_ENV === "production"
@@ -59,19 +62,27 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/message", messageRouter);
 
-io.on("connection", (socket) => {
-  console.log("A user is connected: ", socket.id);
+const onlineUsers = new Map();
+io.on("connection", async (socket) => {
+  try {
+    const cookieHeader = socket.handshake.headers.cookie;
+    const token = tokenExtractor({ headers: { cookie: cookieHeader } });
+    if (!token) {
+      return socket.disconnect();
+    }
 
-  socket.on("chat message", (msg) => {
-    console.log("Message received: ", msg);
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Brodcast message to everyone
-    io.emit("chat message", msg);
-  });
+    onlineUsers.set(decode, _id, socket.id);
+    await setUserOnline(userId);
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
+    socket.on("disconnect", async () => {
+      await setUserOffline(decode._id);
+    });
+  } catch (err) {
+    console.log("Socket auth error: ", err);
+    socket.disconnect();
+  }
 });
 
 server.listen(process.env.PORT || 3000, () => {
