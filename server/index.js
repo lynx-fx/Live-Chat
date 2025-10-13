@@ -68,19 +68,12 @@ io.on("connection", async (socket) => {
   try {
     const cookies = cookie.parse(socket.handshake.headers.cookie || "");
     const token = cookies.auth;
-    console.log(cookies);
-    console.log(token);
-    
     if (!token) {
       return socket.disconnect();
     }
     
     const decode = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decode.id);
-
     onlineUsers.set(decode.id, socket.id);
-    console.log(decode);
-    console.log(decode.id);
     await setUserOnline(decode.id);
 
     socket.on("disconnect", async () => {

@@ -33,6 +33,7 @@ function Dashboard() {
     : import.meta.env.VITE_BACKEND_LOCAL;
   const [isloading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState({});
+  const [socket, setSocket] = useState(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -158,6 +159,7 @@ function Dashboard() {
       withCredentials: true,
       transports: ["websocket"],
     });
+    setSocket(socket);
   }, []);
 
   const [friends, setFriends] = useState([]);
@@ -225,7 +227,9 @@ function Dashboard() {
   };
 
   const handleLogout = () => {
-    // Add logout logic here
+    if (socket) {
+      socket.disconnect();
+    }
     window.location.href = "/";
   };
 

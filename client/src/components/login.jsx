@@ -10,7 +10,6 @@ export default function Login() {
   const BACKEND = import.meta.env.PROD
     ? import.meta.env.VITE_BACKEND_HOSTED
     : import.meta.env.VITE_BACKEND_LOCAL;
-  const [socket, setSocket] = useState(null);
 
   const navigate = useNavigate();
   const containerVariants = {
@@ -43,7 +42,6 @@ export default function Login() {
         const data = await response.json();
         if (response.ok && data.success) {
           toast.success(data.message || "Login in successful");
-          setSocket(socket);
           navigate(data.redirect || "/dashboard");
         } else {
           toast.error(data.message || "Login in failed");
