@@ -4,7 +4,6 @@ import "../styles/login.css";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { toast } from "sonner";
-import { io } from "socket.io-client";
 import { useState } from "react";
 
 export default function Login() {
@@ -44,8 +43,6 @@ export default function Login() {
         const data = await response.json();
         if (response.ok && data.success) {
           toast.success(data.message || "Login in successful");
-          const socket = io(BACKEND, { withCredentials: true });
-          toast.info("Socket connected");
           setSocket(socket);
           navigate(data.redirect || "/dashboard");
         } else {

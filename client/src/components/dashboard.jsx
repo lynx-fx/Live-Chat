@@ -14,6 +14,7 @@ import { Navigate } from "react-router-dom";
 import "../styles/dashboard.css";
 import { toast } from "sonner";
 import Loading from "./loading.jsx";
+import { io } from "socket.io-client";
 
 // DONE: Fetching previous messages when a chat is selected
 // TODO: Integration of socket.io for messaging
@@ -147,6 +148,17 @@ function Dashboard() {
       toast.error("Something went wrong. Please try again later");
     }
   }, [selectedChat]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [selectedChat]);
+
+  useEffect(() => {
+    const socket = io(BACKEND, {
+      withCredentials: true,
+      transports: ["websocket"],
+    });
+  }, []);
 
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
@@ -355,27 +367,26 @@ function Dashboard() {
   };
 
   const timeAgo = (date) => {
-  const now = new Date();
-  const past = new Date(date);
-  const diff = now - past;
+    const now = new Date();
+    const past = new Date(date);
+    const diff = now - past;
 
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 7);
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const years = Math.floor(days / 365);
 
-  if (seconds < 60) return `${seconds}s`;
-  if (minutes < 60) return `${minutes}m`;
-  if (hours < 24) return `${hours}h`;
-  if (days < 7) return `${days}d`;
-  if (weeks < 4) return `${weeks}w`;
-  if (months < 12) return `${months}mo`;
-  return `${years}y`;
-};
-
+    if (seconds < 60) return `${seconds}s`;
+    if (minutes < 60) return `${minutes}m`;
+    if (hours < 24) return `${hours}h`;
+    if (days < 7) return `${days}d`;
+    if (weeks < 4) return `${weeks}w`;
+    if (months < 12) return `${months}mo`;
+    return `${years}y`;
+  };
 
   const isSenderMe = (id) => {
     if (!userDetails || !userDetails?._id) return false;

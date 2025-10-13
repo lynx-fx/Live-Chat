@@ -1,9 +1,10 @@
 const User = require("../model/userModel");
 
 exports.setUserOnline = async(userId) => {
-    return User.findOneAndUpdate(userId, {isOnline: true})
+    console.log("Turning online for: ", userId);
+    return User.findOneAndUpdate({_id: userId}, {isOnline: true})
 }
 
 exports.setUserOffline = async(userId) => {
-    return User.findOneAndUpdate(userId, {isOnline: false})
+    return User.findOneAndUpdate({_id: userId}, {isOnline: false})
 }   

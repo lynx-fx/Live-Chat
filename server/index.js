@@ -12,6 +12,7 @@ const messageRouter = require("./routes/messageRouter");
 const { setUserOnline, setUserOffline } = require("./services/userServices");
 const { tokenExtractor } = require("./util/tokenExtractor");
 const jwt = require("jsonwebtoken");
+const cookie = require("cookie");
 
 const frontend =
   process.env.NODE_ENV === "production"
@@ -65,19 +66,25 @@ app.use("/api/message", messageRouter);
 const onlineUsers = new Map();
 io.on("connection", async (socket) => {
   try {
-    const cookieHeader = socket.handshake.headers.cookie;
-    const token = tokenExtractor({ headers: { cookie: cookieHeader } });
+    const cookies = cookie.parse(socket.handshake.headers.cookie || "");
+    const token = cookies.auth;
+    console.log(cookies);
+    console.log(token);
+    
     if (!token) {
       return socket.disconnect();
     }
-
+    
     const decode = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decode.id);
 
-    onlineUsers.set(decode, _id, socket.id);
-    await setUserOnline(userId);
+    onlineUsers.set(decode.id, socket.id);
+    console.log(decode);
+    console.log(decode.id);
+    await setUserOnline(decode.id);
 
     socket.on("disconnect", async () => {
-      await setUserOffline(decode._id);
+      await setUserOffline(decode.id);
     });
   } catch (err) {
     console.log("Socket auth error: ", err);

@@ -11,6 +11,7 @@
     "dev": "node --watch --trace-warnings index.js"
   },
   "dependencies": {
+    "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",

@@ -42,7 +42,7 @@ exports. login = async (req, res) => {
         .cookie("auth", token, {
           httpOnly: process.env.NODE_ENV == "production",
           secure: process.env.NODE_ENV == "production",
-          sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+          sameSite: "None",
           expires: new Date(Date.now() + 86400000),
         })
         .json({
