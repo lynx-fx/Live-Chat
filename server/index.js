@@ -71,16 +71,20 @@ io.on("connection", async (socket) => {
     if (!token) {
       return socket.disconnect();
     }
-    
-    const decode = jwt.verify(token, process.env.JWT_SECRET);
-    onlineUsers.set(decode.id, socket.id);
-    await setUserOnline(decode.id);
 
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decode.id;
+    onlineUsers.set(userId, socket.id);
+    await setUserOnline(userId);
+
+    io.emit("userStatusUpdate", { userId, status: "online" });
     socket.on("disconnect", async () => {
       await setUserOffline(decode.id);
+      io.emit("userStatusUpdate", { userId, status: "offline" });
     });
   } catch (err) {
     console.log("Socket auth error: ", err);
+    io.emit("userStatusUpdate", { userId, status: "offline" });
     socket.disconnect();
   }
 });

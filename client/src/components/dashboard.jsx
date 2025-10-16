@@ -162,6 +162,24 @@ function Dashboard() {
     setSocket(socket);
   }, []);
 
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("userStatusUpdate", ({ userId, status }) => {
+      setFriends((prevFriends) => {
+        return prevFriends.map((friend) => {
+          if (friend._id === userId) {
+            return { ...friend, isOnline: status === "online" };
+          }
+          return friend;
+        });
+      });
+    });
+
+    return () => {
+      socket.off("userStatusUpdate");
+    };
+  }, [socket]);
+
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
 
