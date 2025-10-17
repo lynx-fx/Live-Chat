@@ -1,3 +1,4 @@
+
 const jwt = require("jsonwebtoken");
 
 const User = require("../model/userModel");
@@ -38,7 +39,7 @@ exports.getUserDetails = async (req, res) => {
       if (!userDetails || userDetails.friendRequests.length === 0) {
         return res.status(404).json({
           success: false,
-          message: "No requests. Maybe try adding them?",
+          message: "No requests. Maybe try adding some ;)",
         });
       }
 

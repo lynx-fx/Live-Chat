@@ -37,6 +37,7 @@ exports.sendMessage = async (req, res) => {
       sender: user.id,
       receiver: receiverId,
       content: encrypt,
+      createdAt: new Date(),
     });
     await newMessage.save();
 

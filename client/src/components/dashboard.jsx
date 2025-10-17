@@ -17,7 +17,9 @@ import Loading from "./loading.jsx";
 import { io } from "socket.io-client";
 
 // DONE: Fetching previous messages when a chat is selected
-// TODO: Integration of socket.io for messaging
+// DONE: Integration of socket.io for messaging
+// TODO: Auto scroll to bottom on receiving or sending message
+// TODO: Caret in the text input box
 
 function Dashboard() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -75,24 +77,7 @@ function Dashboard() {
         if (response.ok && data.success) {
           setFriends(data.friends || []);
         } else {
-          toast.info(data.message || "No friends found. Try adding some!");
-        }
-      };
-      const getLastMessages = async () => {
-        try {
-          const response = await fetch(
-            `${BACKEND}/api/message/getLastMessages`,
-            {
-              method: "GET",
-              headers: {
-                "content-type": "application/json",
-              },
-              credentials: "include",
-            }
-          );
-        } catch (err) {
-          console.log(err);
-          toast.error("Something went wrong. Please try again later");
+          toast.info(data.message || "No friends found. Try making some!");
         }
       };
       getUserDetails();
@@ -128,9 +113,6 @@ function Dashboard() {
           const formattedMessages = data.messages.map((msg) => ({
             _id: msg._id,
             content: msg.content,
-            sender: isSenderMe(msg.sender)
-              ? userDetails.userName
-              : selectedChat.userName,
             createdAt: localTime(msg.createdAt),
             isMe: isSenderMe(msg.sender),
           }));
@@ -165,6 +147,13 @@ function Dashboard() {
   useEffect(() => {
     if (!socket) return;
     socket.on("userStatusUpdate", ({ userId, status }) => {
+      setSelectedChat((prev) => {
+        if (prev?._id === userId) {
+          return { ...prev, isOnline: status === "online" };
+        }
+        return prev;
+      });
+
       setFriends((prevFriends) => {
         return prevFriends.map((friend) => {
           if (friend._id === userId) {
@@ -177,6 +166,41 @@ function Dashboard() {
 
     return () => {
       socket.off("userStatusUpdate");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("message", ({ from, message, createdAt }) => {
+      const formattedMessage = {
+        _id: Date.now(),
+        content: message,
+        createdAt: localTime(createdAt),
+        isMe: false,
+      };
+
+      setMessages((prev) => ({
+        ...prev,
+        [from]: [...(prev[from] || []), formattedMessage],
+      }));
+
+      // DONE: Update last message
+      setFriends((prev) => {
+        return prev.map((friend) => {
+          if (friend._id === from) {
+            return {
+              ...friend,
+              lastMessage: message,
+              lastMessageAt: createdAt,
+            };
+          }
+        });
+      });
+      scrollToBottom();
+    });
+
+    return () => {
+      socket.off("message");
     };
   }, [socket]);
 
@@ -194,16 +218,6 @@ function Dashboard() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!message.trim() || !selectedChat) return;
-
-    // const newMessage = {
-    // id: Date.now(),
-    // text: message,
-    // timestamp: new Date().toLocaleTimeString([], {
-    // hour: "2-digit",
-    // minute: "2-digit",
-    // }),
-    // isMe: true,
-    // };
 
     try {
       setIsLoading(true);
@@ -230,6 +244,18 @@ function Dashboard() {
             data.newMessage,
           ],
         }));
+        socket.emit("message", selectedChat._id, message);
+        setFriends((prev) => {
+          return prev.map((friend) => {
+            if (friend._id === selectedChat._id) {
+              return {
+                ...friend,
+                lastMessage: message,
+                lastMessageAt: data.newMessage.createdAt,
+              };
+            }
+          });
+        });
       } else {
         setMessage("");
         toast.error(data.message || "Failed to send message");

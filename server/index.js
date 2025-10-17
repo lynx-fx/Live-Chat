@@ -13,6 +13,7 @@ const { setUserOnline, setUserOffline } = require("./services/userServices");
 const { tokenExtractor } = require("./util/tokenExtractor");
 const jwt = require("jsonwebtoken");
 const cookie = require("cookie");
+const User = require("./model/userModel");
 
 const frontend =
   process.env.NODE_ENV === "production"
@@ -78,7 +79,21 @@ io.on("connection", async (socket) => {
     await setUserOnline(userId);
 
     io.emit("userStatusUpdate", { userId, status: "online" });
+    socket.on("message", (to, message) => {
+      if (!onlineUsers.has(to)) {
+        return;
+      }
+      const receiverSocket = onlineUsers.get(to);
+      if (receiverSocket) {
+        io.to(receiverSocket).emit("message", {
+          from: userId,
+          message,
+          createdAt: new Date(),
+        });
+      }
+    });
     socket.on("disconnect", async () => {
+      onlineUsers.delete(userId);
       await setUserOffline(decode.id);
       io.emit("userStatusUpdate", { userId, status: "offline" });
     });
