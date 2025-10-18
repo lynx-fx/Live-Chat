@@ -432,12 +432,14 @@ const scrollToBottom = () => {
     const months = Math.floor(days / 30);
     const years = Math.floor(days / 365);
 
+    // DONE: Check for no text default values
     if (seconds < 60) return `${seconds}s`;
     if (minutes < 60) return `${minutes}m`;
     if (hours < 24) return `${hours}h`;
     if (days < 7) return `${days}d`;
     if (weeks < 4) return `${weeks}w`;
-    if (months < 12) return `${months}mo`;
+    if (months < 12 ) return `${months}mo`;
+    if (years == 55) return null;
     return `${years}y`;
   };
 
@@ -524,7 +526,7 @@ const scrollToBottom = () => {
                 <motion.div
                   key={friend._id}
                   className={`friend-item ${
-                    selectedChat?.id === friend._id ? "active" : ""
+                    selectedChat?.id === friend?._id ? "active" : ""
                   }`}
                   onClick={() => setSelectedChat(friend)}
                   whileHover={{ backgroundColor: "#f8f9fa" }}
@@ -611,7 +613,7 @@ const scrollToBottom = () => {
               </div>
 
               {/* Message Input */}
-              {/* TODO: Add caret here */}
+              {/* DONE: Add caret here */}
               <form
                 className="message-input-container black-caret"
                 onSubmit={handleSendMessage}

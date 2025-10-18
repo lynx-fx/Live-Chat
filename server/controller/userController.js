@@ -1,4 +1,3 @@
-
 const jwt = require("jsonwebtoken");
 
 const User = require("../model/userModel");
@@ -48,33 +47,38 @@ exports.getUserDetails = async (req, res) => {
         friendRequests: userDetails.friendRequests ?? [],
       });
     } else if (action === "getFriends") {
-  const userDetails = await User.findById(user._id).populate(
-    "friends",
-    "_id userName email profileURI isOnline"
-  );
+      const userDetails = await User.findById(user._id).populate(
+        "friends",
+        "_id userName email profileURI isOnline"
+      );
 
-  if (!userDetails || !userDetails.friends || userDetails.friends.length === 0) {
-    return res
-      .status(404)
-      .json({ success: false, message: "No friends found :(" });
-  }
+      if (
+        !userDetails ||
+        !userDetails.friends ||
+        userDetails.friends.length === 0
+      ) {
+        return res
+          .status(404)
+          .json({ success: false, message: "No friends found :(" });
+      }
 
-  const lastMessages = await getLastMessages(user._id, userDetails.friends);
-  const friendsWithLastMsg = userDetails.friends.map(friend => {
-    const friendObj = friend.toObject();
-    const lastMsgObj = lastMessages.find(
-      msg => msg.friendId.toString() === friend._id.toString()
-    );
+      const lastMessages = await getLastMessages(user._id, userDetails.friends);
+      const friendsWithLastMsg = userDetails.friends.map((friend) => {
+        const friendObj = friend.toObject();
+        const lastMsgObj = lastMessages.find(
+          (msg) => msg.friendId.toString() === friend._id.toString()
+        );
 
-    friendObj.lastMessage = lastMsgObj?.lastMessage || "";
-    friendObj.lastMessageAt = lastMsgObj?.createdAt || null;
+        friendObj.lastMessage = lastMsgObj?.lastMessage || "";
+        friendObj.lastMessageAt = lastMsgObj?.createdAt || null;
 
-    return friendObj;
-  });
+        return friendObj;
+      });
 
-  return res.status(200).json({ success: true, friends: friendsWithLastMsg });
-}
-else {
+      return res
+        .status(200)
+        .json({ success: true, friends: friendsWithLastMsg });
+    } else {
       return res
         .status(400)
         .json({ success: false, message: "No action provided" });
@@ -87,7 +91,6 @@ else {
   }
 };
 
-// TODO: Check if friend already exists or not while adding new friends
 exports.handleFriends = async (req, res) => {
   try {
     const { friendId, friendEmail, action } = req.body;
@@ -148,6 +151,29 @@ exports.handleFriends = async (req, res) => {
         message: "Friend request rejected successfully",
       });
     } else if (action == "sendFriendRequest") {
+      // DONE: Check if friend already exists or not while adding new friends
+      if (friend.email === user.email || friend._id === user._id) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "I know you got yourself but try adding others ;)",
+          });
+      }
+      if (user.friends && user.friends.includes(friend._id)) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message: "User already exists in friend list",
+          });
+      }
+      if (friend.friendRequests && friend.friendRequests.includes(user._id)) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Request already sent" });
+      }
+
       await User.findByIdAndUpdate(friend._id, {
         $addToSet: { friendRequests: user._id },
       });
