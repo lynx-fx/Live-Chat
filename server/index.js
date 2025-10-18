@@ -10,10 +10,8 @@ const authRouter = require("./routes/authRouter");
 const userRouter = require("./routes/userRouter");
 const messageRouter = require("./routes/messageRouter");
 const { setUserOnline, setUserOffline } = require("./services/userServices");
-const { tokenExtractor } = require("./util/tokenExtractor");
 const jwt = require("jsonwebtoken");
 const cookie = require("cookie");
-const User = require("./model/userModel");
 
 const frontend =
   process.env.NODE_ENV === "production"
@@ -99,7 +97,7 @@ io.on("connection", async (socket) => {
     });
   } catch (err) {
     console.log("Socket auth error: ", err);
-    io.emit("userStatusUpdate", { userId, status: "offline" });
+    // io.emit("userStatusUpdate", { userId, status: "offline" });
     socket.disconnect();
   }
 });

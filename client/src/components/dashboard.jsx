@@ -18,8 +18,8 @@ import { io } from "socket.io-client";
 
 // DONE: Fetching previous messages when a chat is selected
 // DONE: Integration of socket.io for messaging
-// TODO: Auto scroll to bottom on receiving or sending message
-// TODO: Caret in the text input box
+// DONE: Auto scroll to bottom on receiving or sending message
+// DONE: Caret in the text input box
 
 function Dashboard() {
   const [selectedChat, setSelectedChat] = useState(null);
@@ -133,8 +133,9 @@ function Dashboard() {
   }, [selectedChat]);
 
   useEffect(() => {
+    if (!selectedChat) return;
     scrollToBottom();
-  }, [selectedChat]);
+  }, [messages[selectedChat?._id]]);
 
   useEffect(() => {
     const socket = io(BACKEND, {
@@ -207,9 +208,12 @@ function Dashboard() {
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
 
-  const scrollToBottom = () => {
+const scrollToBottom = () => {
+  setTimeout(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, 50);
+};
+
 
   // const filteredFriends = friends.filter((friend) =>
   //   friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -245,6 +249,7 @@ function Dashboard() {
           ],
         }));
         socket.emit("message", selectedChat._id, message);
+        scrollToBottom();
         setFriends((prev) => {
           return prev.map((friend) => {
             if (friend._id === selectedChat._id) {
