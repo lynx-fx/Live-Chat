@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useRef, use, act } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -194,6 +192,7 @@ function Dashboard() {
               lastMessage: message,
               lastMessageAt: createdAt,
             };
+            return friend;
           }
         });
       });
@@ -259,6 +258,7 @@ const scrollToBottom = () => {
                 lastMessageAt: data.newMessage.createdAt,
               };
             }
+            return friend;
           });
         });
       } else {
