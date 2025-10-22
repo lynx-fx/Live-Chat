@@ -115,7 +115,7 @@ exports.handleFriends = async (req, res) => {
     if (!friend) {
       return res
         .status(404)
-        .json({ success: false, message: "Unauthorized access" });
+        .json({ success: false, message: "Friend doesn't exists" });
     }
 
     if (action == "acceptFriendRequest") {
