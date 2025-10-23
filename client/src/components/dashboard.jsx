@@ -214,9 +214,9 @@ const scrollToBottom = () => {
 };
 
 
-  // const filteredFriends = friends.filter((friend) =>
-  //   friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
-  // );
+  const filteredFriends = friends.filter((friend) =>
+    friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -522,7 +522,7 @@ const scrollToBottom = () => {
               </button>
             </div>
             <div className="friends-scroll">
-              {friends.map((friend) => (
+              {filteredFriends.map((friend) => (
                 <motion.div
                   key={friend._id}
                   className={`friend-item ${
@@ -675,7 +675,7 @@ const scrollToBottom = () => {
                     className="friend-request-form"
                   >
                     <input
-                      type="text"
+                      type="email"
                       placeholder="Enter email to find friends."
                       value={friendRequestText}
                       onChange={(e) => setFriendRequestText(e.target.value)}
