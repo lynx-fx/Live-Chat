@@ -167,7 +167,8 @@ function Dashboard() {
       socket.off("userStatusUpdate");
     };
   }, [socket]);
-
+  
+  // DONE: Handle screen clearing out when recveving message in socket
   useEffect(() => {
     if (!socket) return;
     socket.on("message", ({ from, message, createdAt }) => {
@@ -192,8 +193,8 @@ function Dashboard() {
               lastMessage: message,
               lastMessageAt: createdAt,
             };
-            return friend;
           }
+          return friend;
         });
       });
       scrollToBottom();
@@ -207,12 +208,11 @@ function Dashboard() {
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
 
-const scrollToBottom = () => {
-  setTimeout(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, 50);
-};
-
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
+  };
 
   const filteredFriends = friends.filter((friend) =>
     friend.userName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -271,7 +271,6 @@ const scrollToBottom = () => {
       console.log(err);
       toast.error("Something went wrong. Please try again later");
     }
-
     setMessage("");
   };
 
@@ -438,7 +437,7 @@ const scrollToBottom = () => {
     if (hours < 24) return `${hours}h`;
     if (days < 7) return `${days}d`;
     if (weeks < 4) return `${weeks}w`;
-    if (months < 12 ) return `${months}mo`;
+    if (months < 12) return `${months}mo`;
     if (years == 55) return null;
     return `${years}y`;
   };
