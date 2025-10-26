@@ -223,7 +223,7 @@ function Dashboard() {
     if (!message.trim() || !selectedChat) return;
 
     try {
-      setIsLoading(true);
+      // setIsLoading(true);
       const response = await fetch(`${BACKEND}/api/message/sendMessage`, {
         method: "POST",
         headers: {
@@ -236,7 +236,7 @@ function Dashboard() {
         }),
       });
       const data = await response.json();
-      setIsLoading(false);
+      // setIsLoading(false);
       setMessage("");
       data.newMessage.isMe = true;
       if (response.ok && data.success) {
@@ -267,7 +267,7 @@ function Dashboard() {
       }
     } catch (err) {
       setMessage("");
-      setIsLoading(false);
+      // setIsLoading(false);
       console.log(err);
       toast.error("Something went wrong. Please try again later");
     }
